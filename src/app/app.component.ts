@@ -1,6 +1,26 @@
-import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
+
+@Component({
+  selector: `app-comments`,
+  template: `
+    <ul>
+      @for (comment of comments; track comment.id) {
+        <li>
+          {{comment.content}}
+        </li>
+      }
+    </ul>
+  `,
+  standalone: true,
+})
+export class CommentComponent {
+  //this component will be run later once the browser is done loading everything else (defer)
+  comments = [{id: '0', content: 'I like angular but I think some parts could be more intuitive like in React'}, 
+    {id: '1', content: 'I think Angular is better than React but has a harder learning curve'}, 
+    {id: '2', content: 'Fortnite'}];
+}
 
 @Component({
   selector: 'app-child',
@@ -55,12 +75,12 @@ export class OSComponent {
 }
 
 @Component({
-  selector: 'app-root',
+  selector: 'app-main',
   template: `
-    <section>
-        @if (isLoggedIn){
-          <app-user occupation="Angular Dev"/>
-        }
+  <section>
+    @if (isLoggedIn){
+        <app-user occupation="Angular Dev"/>
+      }
       <hr/>
 
       <p> {{ city }}</p> <hr/>
@@ -85,26 +105,41 @@ export class OSComponent {
       <div>
         <app-child (incrementCountEvent)="setCount($event)"/>
         <p>{{ app_count }}</p>
+      </div> <hr/>
+      
+      <!-- ngSrc will automatically optimize our images -->
+      <div id="img_container">
+        <img ngSrc="/assets/bella.jpg" alt="bella" width="256" height="256" priority/> <hr/>
       </div>
+
+      @defer (on viewport){
+        <!-- content will begin loading once it is in view -->
+        <app-comments/>
+      } @placeholder {
+        <p>Comments placeholder before loading begins</p>
+      } @loading (minimum 2s) {
+        <!-- loading will occur for at least 2 seconds to avoid flickering -->
+        <p>Loading comments...</p>
+      }
     </section>
   `,
-  imports: [UserComponent, OSComponent, ChildComponent],
+  imports: [UserComponent, OSComponent, ChildComponent, CommentComponent, NgOptimizedImage, RouterOutlet],
   styles: `
     :host {
-      color: #a144eb;
+      color: #29288a;
     }
     div {
       margin-right: 5px;
       display: flex;
       align-items: center;
     }
+    #img_container {
+      position: "flexed";
+    }
   `,
   standalone: true,
-  // imports: [RouterOutlet],
-  // templateUrl: './app.component.html',
-  // styleUrl: './app.component.css'
 })
-export class AppComponent {
+export class MainComponent {
   city='San Fransisco';
   isLoggedIn = true;
   isServerRunning = false;
@@ -126,3 +161,24 @@ export class AppComponent {
     this.app_count = item;
   }
 }
+
+@Component({
+  selector: 'app-root',
+  template: `
+      <nav>
+      <a href="/">Home</a>
+      |
+      <a href="/about">About</a>
+      </nav>
+      <router-outlet/> <hr/>
+  `,
+  imports: [RouterOutlet],
+  styles: `
+
+  `,
+  standalone: true,
+})
+export class AppComponent {
+  
+}
+
