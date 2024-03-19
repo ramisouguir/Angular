@@ -1,6 +1,7 @@
-import { RouterOutlet } from '@angular/router';
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { RouterOutlet, RouterLink } from '@angular/router';
+import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
+import { CarService } from './car.service';
 
 @Component({
   selector: `app-comments`,
@@ -17,8 +18,8 @@ import { NgOptimizedImage } from '@angular/common';
 })
 export class CommentComponent {
   //this component will be run later once the browser is done loading everything else (defer)
-  comments = [{id: '0', content: 'I like angular but I think some parts could be more intuitive like in React'}, 
-    {id: '1', content: 'I think Angular is better than React but has a harder learning curve'}, 
+  comments = [{id: '0', content: 'I like Angular but I think some features could be more intuitive'}, 
+    {id: '1', content: 'I think Angular is better than React but has a steeper learning curve'}, 
     {id: '2', content: 'Fortnite'}];
 }
 
@@ -47,7 +48,14 @@ export class ChildComponent {
 @Component({
   selector: 'app-user',
   template: `
+  <div>
     Username: {{ username }}, Occupation: {{occupation}}
+  </div>
+  `,
+  styles: `
+    div {
+      margin-bottom: 1em;
+    }
   `,
   standalone: true,
 })
@@ -106,11 +114,13 @@ export class OSComponent {
         <app-child (incrementCountEvent)="setCount($event)"/>
         <p>{{ app_count }}</p>
       </div> <hr/>
+
+      <p>Car Listing: {{ display }}</p> <hr/>
       
       <!-- ngSrc will automatically optimize our images -->
       <div id="img_container">
         <img ngSrc="/assets/bella.jpg" alt="bella" width="256" height="256" priority/> <hr/>
-      </div>
+      </div> <hr/>
 
       @defer (on viewport){
         <!-- content will begin loading once it is in view -->
@@ -125,8 +135,14 @@ export class OSComponent {
   `,
   imports: [UserComponent, OSComponent, ChildComponent, CommentComponent, NgOptimizedImage, RouterOutlet],
   styles: `
+    .poppins-regular {
+      font-family: "Poppins", sans-serif;
+      font-weight: 400;
+      font-style: normal;
+    }
     :host {
       color: #29288a;
+      font-family: "Poppins";
     }
     div {
       margin-right: 5px;
@@ -140,6 +156,8 @@ export class OSComponent {
   standalone: true,
 })
 export class MainComponent {
+  carService = inject(CarService);
+  display = this.carService.getCars().join(' ⭐️ ');
   city='San Fransisco';
   isLoggedIn = true;
   isServerRunning = false;
@@ -166,15 +184,27 @@ export class MainComponent {
   selector: 'app-root',
   template: `
       <nav>
-      <a href="/">Home</a>
+      <a routerLink="/">Home</a>
       |
-      <a href="/about">About</a>
+      <a routerLink="/about">About</a>
       </nav>
-      <router-outlet/> <hr/>
+      <hr/>
+      <router-outlet/> 
   `,
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, RouterLink],
   styles: `
-
+    .poppins-regular {
+      /* this font is imported in the index.html file */
+      font-family: "Poppins", sans-serif;
+      font-weight: 400;
+      font-style: normal;
+    }
+    :host {
+      font-family: "Poppins";
+    }
+    hr {
+      margin-bottom: -.5em;
+    }
   `,
   standalone: true,
 })
