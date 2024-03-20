@@ -1,7 +1,22 @@
 import { RouterOutlet, RouterLink } from '@angular/router';
-import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
-import { NgOptimizedImage } from '@angular/common';
+import { Pipe, PipeTransform, Component, Input, Output, EventEmitter, inject } from '@angular/core';
+import { DecimalPipe, NgOptimizedImage, UpperCasePipe } from '@angular/common';
 import { CarService } from './car.service';
+
+@Pipe({
+  standalone: true,
+  name: 'reverse',
+})
+export class ReversePipe implements PipeTransform {
+  // this pipe will take in a string and return that string with stars around it
+  transform(value: string): string {
+    let backwards = '';
+    for (let i = value.length - 1; i >= 0; i--) {
+      backwards += value[i];
+    }
+    return backwards;
+  }
+}
 
 @Component({
   selector: `app-comments`,
@@ -17,7 +32,7 @@ import { CarService } from './car.service';
   standalone: true,
 })
 export class CommentComponent {
-  //this component will be run later once the browser is done loading everything else (defer)
+  // this component will be run later once the browser is done loading everything else (defer)
   comments = [{id: '0', content: 'I like Angular but I think some features could be more intuitive'}, 
     {id: '1', content: 'I think Angular is better than React but has a steeper learning curve'}, 
     {id: '2', content: 'Fortnite'}];
@@ -49,7 +64,8 @@ export class ChildComponent {
   selector: 'app-user',
   template: `
   <div>
-    Username: {{ username }}, Occupation: {{occupation}}
+    <!-- uppercase pipe will make the interpolated expression become all uppercase letters -->
+    Username: {{ username | uppercase | reverse}}, Occupation: {{occupation}}
   </div>
   `,
   styles: `
@@ -57,6 +73,7 @@ export class ChildComponent {
       margin-bottom: 1em;
     }
   `,
+  imports: [UpperCasePipe, ReversePipe],
   standalone: true,
 })
 export class UserComponent {
@@ -104,7 +121,9 @@ export class OSComponent {
 
       <app-os/> <hr/>
 
-      <div [contentEditable] = "isEditable">Type Here</div> <hr/>
+      <div>
+        <p [contentEditable] = "isEditable">Type Here</p>
+      </div> <hr/>
       
       <button (click)="greet()">{{but_text}}</button> <hr/>
       
@@ -122,6 +141,12 @@ export class OSComponent {
         <img ngSrc="/assets/bella.jpg" alt="bella" width="256" height="256" priority/> <hr/>
       </div> <hr/>
 
+      <div>
+        <p>Decimal Formatted using DecimalPipe: {{ num | number:"1.2-2"}}</p>
+        <!-- format of the pipe parameter (number): 
+            {minIntegerDigits}.{minFractionDigits}-{maxFractionDigits} -->
+      </div> <hr/>
+
       @defer (on viewport){
         <!-- content will begin loading once it is in view -->
         <app-comments/>
@@ -133,7 +158,7 @@ export class OSComponent {
       }
     </section>
   `,
-  imports: [UserComponent, OSComponent, ChildComponent, CommentComponent, NgOptimizedImage, RouterOutlet],
+  imports: [UserComponent, OSComponent, ChildComponent, CommentComponent, NgOptimizedImage, RouterOutlet, DecimalPipe],
   styles: `
     .poppins-regular {
       font-family: "Poppins", sans-serif;
@@ -157,13 +182,21 @@ export class OSComponent {
 })
 export class MainComponent {
   carService = inject(CarService);
-  display = this.carService.getCars().join(' ⭐️ ');
+  // display = this.carService.getCars().join(' ⭐️ ');
+  /* this is one way to do service injection but it can 
+     also be done as a parameter in the constructor as 
+     shown below */
+  display = '';
+  constructor(private otherCarService: CarService) {
+    this.display = this.otherCarService.getCars().join(' ⭐️ ');
+  }
   city='San Fransisco';
   isLoggedIn = true;
   isServerRunning = false;
   isEditable = true;
   but_text = "CLICK ME";
   message = "";
+  num = 3.1415926535
   greet() {
     console.log('Ello Govna');
     if(this.but_text.length>1) {
